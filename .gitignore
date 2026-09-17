@@ -5,6 +5,7 @@
 dist
 dist-ssr
 node_modules
+.pnpm-store/
 .idea/
 *.log
 # git rm --cached auto-imports.d.ts
