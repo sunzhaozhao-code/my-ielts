@@ -1,0 +1,11 @@
+.DS_Store
+.vite-ssg-dist
+.vite-ssg-temp
+*.local
+dist
+dist-ssr
+node_modules
+.idea/
+*.log
+# git rm --cached auto-imports.d.ts
+auto-imports.d.ts
