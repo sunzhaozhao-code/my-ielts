@@ -65,6 +65,9 @@ const readiness = computed(() => evaluateStageReadiness(studyStore.state))
       <p class="mt-4 text-sm font-medium" :class="readiness.ready ? 'text-green-600' : 'text-amber-600'">
         {{ readiness.ready ? '能力条件已满足，完成阶段课程后可以晋级。' : '尚有条件未满足，系统会继续安排薄弱项训练。' }}
       </p>
+      <RouterLink to="/assessment/reading" class="mt-5 inline-flex items-center rounded-xl bg-primary-600 px-5 py-3 text-sm font-medium text-white">
+        开始阶段阅读测评
+      </RouterLink>
     </section>
   </div>
 </template>

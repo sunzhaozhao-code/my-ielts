@@ -3,7 +3,7 @@ import { LISTENING_LESSONS, selectListeningLesson } from '../../src/data/listeni
 
 describe('listening lessons', () => {
   it('contains usable questions and valid answers', () => {
-    expect(LISTENING_LESSONS.length).toBeGreaterThanOrEqual(6)
+    expect(LISTENING_LESSONS.length).toBeGreaterThanOrEqual(12)
     for (const lesson of LISTENING_LESSONS) {
       expect(lesson.transcript.length).toBeGreaterThan(200)
       expect(lesson.questions.length).toBeGreaterThanOrEqual(3)

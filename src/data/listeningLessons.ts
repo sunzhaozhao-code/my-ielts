@@ -90,6 +90,78 @@ export const LISTENING_LESSONS: ListeningLesson[] = [
       { id: 'rp-3', prompt: 'Why is feedback important?', options: ['It makes testing feel easier.', 'It prevents wrong answers becoming familiar.', 'It removes the need for repetition.', 'It replaces spaced practice.'], answer: 1, explanation: '错误若不及时纠正，也可能形成熟悉感。' },
     ],
   },
+  {
+    id: 'bus-service-change',
+    difficulty: 1,
+    title: 'Bus Service Update',
+    context: '场景：公交公司发布临时线路调整通知。',
+    transcript: 'From next Monday, buses on route sixteen will not stop outside Central Market because of road repairs. Passengers should use the temporary stop on King Street, opposite the post office. Services will continue every twenty minutes during the day, but the final evening bus will leave the railway station at ten fifteen instead of ten forty-five. The road work is expected to last for three weeks. Updated timetables are available on the company website and inside the railway station.',
+    questions: [
+      { id: 'bs-1', prompt: 'Where is the temporary bus stop?', options: ['Beside Central Market.', 'Opposite the post office.', 'Inside the railway station.', 'On Market Street.'], answer: 1, explanation: '临时站在 King Street 邮局对面。' },
+      { id: 'bs-2', prompt: 'How often will daytime buses run?', options: ['Every 10 minutes.', 'Every 15 minutes.', 'Every 20 minutes.', 'Every 30 minutes.'], answer: 2, explanation: '日间班次仍为每二十分钟一班。' },
+      { id: 'bs-3', prompt: 'What changes about the final bus?', options: ['It leaves earlier.', 'It leaves later.', 'It starts at the market.', 'It runs only online.'], answer: 0, explanation: '末班车由十点四十五提前至十点十五。' },
+    ],
+  },
+  {
+    id: 'volunteer-induction',
+    difficulty: 1,
+    title: 'Community Garden Volunteers',
+    context: '场景：负责人向新志愿者介绍花园工作。',
+    transcript: 'Thank you for volunteering at Riverside Community Garden. New volunteers begin with a short safety tour at nine o’clock beside the main gate. Gloves and tools are provided, so you only need to bring drinking water and clothes suitable for the weather. This Saturday we will prepare vegetable beds rather than plant seeds because heavy rain is forecast for Sunday. At midday, everyone is invited to share lunch in the wooden shelter. Please tell us in advance if you have any food allergies.',
+    questions: [
+      { id: 'vi-1', prompt: 'Where does the safety tour begin?', options: ['At the wooden shelter.', 'Beside the main gate.', 'Near the vegetable beds.', 'At the river.'], answer: 1, explanation: '安全介绍在主入口旁开始。' },
+      { id: 'vi-2', prompt: 'What should volunteers bring?', options: ['Their own tools.', 'Seeds and gloves.', 'Drinking water.', 'Lunch for everyone.'], answer: 2, explanation: '工具和手套提供，只需自带饮用水及合适衣物。' },
+      { id: 'vi-3', prompt: 'Why will the group not plant seeds?', options: ['The beds are already full.', 'Rain is expected.', 'There are too few volunteers.', 'The seeds arrived late.'], answer: 1, explanation: '因为预计周日有大雨。' },
+    ],
+  },
+  {
+    id: 'sleep-study',
+    difficulty: 2,
+    title: 'Planning a Sleep Study',
+    context: '场景：学生讨论睡眠研究的实验设计。',
+    transcript: 'For our sleep study, we first thought of asking participants to remember a list of numbers. The supervisor said that task might favour people with strong mathematical skills, so we will use unfamiliar pictures instead. Participants will view the pictures in the evening and return for a memory test the following morning. We need to monitor their sleep, but asking everyone to stay in the laboratory would be expensive. Instead, they will wear small wrist devices at home. We should also collect information about caffeine because it could influence both sleep and test performance.',
+    questions: [
+      { id: 'ss-1', prompt: 'Why was the number task rejected?', options: ['It was too long.', 'It could favour mathematical ability.', 'The supervisor preferred words.', 'Participants saw it in the morning.'], answer: 1, explanation: '数字任务可能偏向数学能力强的人。' },
+      { id: 'ss-2', prompt: 'How will sleep be monitored?', options: ['With home wrist devices.', 'In a hospital laboratory.', 'Through morning interviews.', 'Using cameras.'], answer: 0, explanation: '参与者在家佩戴腕部设备。' },
+      { id: 'ss-3', prompt: 'What additional information will be collected?', options: ['Exercise habits.', 'Mathematical grades.', 'Caffeine intake.', 'Picture preferences.'], answer: 2, explanation: '咖啡因会影响睡眠和测试表现。' },
+    ],
+  },
+  {
+    id: 'archaeology-survey',
+    difficulty: 2,
+    title: 'Archaeological Site Survey',
+    context: '场景：考古课程导师解释实地调查方法。',
+    transcript: 'Before any digging begins, the team will carry out a surface survey. Students will walk along parallel lines five metres apart and mark visible pottery on a digital map. Do not remove an object when you first see it, because its exact position may reveal a pattern. After the mapping is complete, selected pieces will be collected and labelled. We had planned to use a drone for aerial photographs, but strong winds make that impossible this week. Instead, photographs will be taken from a temporary platform at the southern edge of the field.',
+    questions: [
+      { id: 'as-1', prompt: 'How far apart will the survey lines be?', options: ['2 metres.', '5 metres.', '10 metres.', '15 metres.'], answer: 1, explanation: '调查路线相距五米。' },
+      { id: 'as-2', prompt: 'Why should objects initially remain in place?', options: ['They may be dangerous.', 'Their positions may show a pattern.', 'They belong to another team.', 'Labels are not available.'], answer: 1, explanation: '物体准确位置可能揭示分布规律。' },
+      { id: 'as-3', prompt: 'Why will the team not use a drone?', options: ['The battery failed.', 'The field is too small.', 'The wind is too strong.', 'The platform is higher.'], answer: 2, explanation: '本周强风使无人机无法使用。' },
+    ],
+  },
+  {
+    id: 'language-prediction',
+    difficulty: 3,
+    title: 'Prediction in Language Processing',
+    context: '场景：语言学讲座节选。',
+    transcript: 'Listeners do not wait passively for every word in a sentence. They use context to predict what may come next, which can make familiar speech remarkably efficient. Evidence comes from eye-tracking studies: when people hear a verb such as eat, they often look towards an edible object before that object is named. Prediction is not always beneficial. A strongly expected word can make an unexpected alternative harder to process for a brief period. Moreover, predictions are shaped by experience, so speakers from different linguistic backgrounds may anticipate different structures. Researchers now emphasise flexibility rather than perfect prediction: successful listeners rapidly update their interpretation when the evidence changes.',
+    questions: [
+      { id: 'lp-1', prompt: 'What do eye-tracking studies show?', options: ['Listeners close their eyes during verbs.', 'People may look at a likely object before it is named.', 'Edible objects prevent prediction.', 'Familiar speech is always slow.'], answer: 1, explanation: '听到 eat 后，听者可能在目标词出现前看向可食物品。' },
+      { id: 'lp-2', prompt: 'What can happen after a strong but incorrect expectation?', options: ['The alternative is briefly harder to process.', 'Speech becomes permanently unclear.', 'Experience stops affecting language.', 'Listeners predict perfectly next time.'], answer: 0, explanation: '预期错误会短暂增加处理意外词的难度。' },
+      { id: 'lp-3', prompt: 'What quality do researchers now stress?', options: ['Vocabulary size.', 'Speaking volume.', 'Interpretive flexibility.', 'Perfect prediction.'], answer: 2, explanation: '研究者强调根据新证据快速更新解释的灵活性。' },
+    ],
+  },
+  {
+    id: 'circular-products',
+    difficulty: 3,
+    title: 'Designing Products for a Circular Economy',
+    context: '场景：可持续设计讲座节选。',
+    transcript: 'A circular economy aims to keep products and materials useful for longer, but recycling is only one part of the strategy. Design determines whether a product can be repaired, upgraded or taken apart. A device held together with standard screws may be opened without damage, whereas strong adhesives can make a simple battery replacement impossible. Manufacturers sometimes resist modular design because extra connectors add cost and may increase the size of a product. There is also no environmental benefit if consumers replace functioning modules merely because newer ones are available. For this reason, researchers assess actual behaviour as well as technical repairability. The most successful systems combine durable design, access to spare parts and business models that reward maintenance rather than rapid replacement.',
+    questions: [
+      { id: 'cp-1', prompt: 'Why are standard screws mentioned?', options: ['They make products larger.', 'They allow non-destructive opening.', 'They prevent all upgrades.', 'They are cheaper than spare parts.'], answer: 1, explanation: '标准螺丝便于无损拆开设备。' },
+      { id: 'cp-2', prompt: 'What disadvantage of modular design is identified?', options: ['It always prevents repair.', 'Connectors may add cost and size.', 'Consumers cannot see new modules.', 'It removes the need for recycling.'], answer: 1, explanation: '额外连接件会增加成本，也可能增大产品尺寸。' },
+      { id: 'cp-3', prompt: 'What do successful circular systems reward?', options: ['Frequent replacement.', 'Use of strong adhesives.', 'Maintenance.', 'Larger packaging.'], answer: 2, explanation: '成功体系应奖励维护，而非快速替换。' },
+    ],
+  },
 ]
 
 export function getListeningLesson(id: string | undefined) {

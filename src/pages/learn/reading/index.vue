@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStudyStore } from '~/composables/useStudyStore'
-import { getReadingLesson, selectReadingLesson } from '~/data/readingLessons'
+import { getReadingLesson, isReadingAnswerCorrect, readingExpectedAnswer, selectReadingLesson } from '~/data/readingLessons'
 
 const route = useRoute()
 const studyStore = useStudyStore()
@@ -10,13 +10,13 @@ const taskId = typeof route.query.task === 'string' ? route.query.task : undefin
 const requestedLesson = typeof route.query.lesson === 'string' ? route.query.lesson : undefined
 const lesson = getReadingLesson(requestedLesson)
   ?? selectReadingLesson(studyStore.progress.value.currentStage, studyStore.state.skillAttempts, studyStore.progress.value.courseDay)
-const answers = ref<Array<number | null>>(lesson.questions.map(() => null))
+const answers = ref<Array<number | string | null>>(lesson.questions.map(question => question.type === 'text' ? '' : null))
 const submitted = ref(false)
 const startedAt = Date.now()
 const elapsedSeconds = ref(0)
 const timer = window.setInterval(() => elapsedSeconds.value = Math.round((Date.now() - startedAt) / 1000), 1000)
-const answered = computed(() => answers.value.filter(answer => answer !== null).length)
-const score = computed(() => lesson.questions.filter((question, index) => answers.value[index] === question.answer).length)
+const answered = computed(() => answers.value.filter(answer => typeof answer === 'string' ? Boolean(answer.trim()) : answer !== null).length)
+const score = computed(() => lesson.questions.filter((question, index) => isReadingAnswerCorrect(question, answers.value[index])).length)
 
 function submit() {
   if (answered.value !== lesson.questions.length)
@@ -29,7 +29,7 @@ function submit() {
     questionId: question.id,
     title: lesson.title,
     route: `/learn/reading?lesson=${encodeURIComponent(lesson.id)}`,
-    correct: answers.value[index] === question.answer,
+    correct: isReadingAnswerCorrect(question, answers.value[index]),
   }))
   const accuracy = Math.round(score.value / lesson.questions.length * 100)
   studyStore.addSkillAttempt({ type: 'reading', resourceId: `reading:${lesson.id}`, durationSeconds: elapsedSeconds.value, accuracy, score: score.value })
@@ -64,9 +64,12 @@ onUnmounted(() => window.clearInterval(timer))
         <h2 class="font-semibold text-gray-950 dark:text-white">
           {{ questionIndex + 1 }}. {{ question.prompt }}
         </h2>
-        <div class="grid mt-4 gap-2 sm:grid-cols-2">
+        <p v-if="question.instruction" class="mt-2 text-xs font-medium uppercase tracking-wide text-gray-400">
+          {{ question.instruction }}
+        </p>
+        <div v-if="question.type !== 'text'" class="grid mt-4 gap-2 sm:grid-cols-2">
           <button
-            v-for="(option, optionIndex) in question.options" :key="option" class="border rounded-lg px-4 py-3 text-left text-sm" :disabled="submitted" :class="[
+            v-for="(option, optionIndex) in question.options ?? []" :key="option" class="border rounded-lg px-4 py-3 text-left text-sm" :disabled="submitted" :class="[
               answers[questionIndex] === optionIndex ? 'border-primary-600 bg-primary-50 dark:bg-primary-950' : 'border-gray-200 dark:border-gray-700',
               submitted && optionIndex === question.answer ? '!border-green-600 !bg-green-50 dark:!bg-green-950/30' : '',
               submitted && answers[questionIndex] === optionIndex && optionIndex !== question.answer ? '!border-red-500 !bg-red-50 dark:!bg-red-950/30' : '',
@@ -75,6 +78,10 @@ onUnmounted(() => window.clearInterval(timer))
             {{ option }}
           </button>
         </div>
+        <input v-else v-model="answers[questionIndex]" type="text" class="mt-4 w-full border border-gray-300 rounded-xl bg-transparent px-4 py-3 outline-none dark:border-gray-600 focus:border-primary-500" :disabled="submitted" placeholder="输入答案">
+        <p v-if="submitted && !isReadingAnswerCorrect(question, answers[questionIndex])" class="mt-3 text-sm font-medium text-red-600 dark:text-red-400">
+          推荐答案：{{ readingExpectedAnswer(question) }}
+        </p>
         <p v-if="submitted" class="mt-3 text-sm text-gray-600 dark:text-gray-300">
           {{ question.explanation }}
         </p>
