@@ -64,7 +64,7 @@ onUnmounted(() => window.clearInterval(timer))
         <h2 class="font-semibold text-gray-950 dark:text-white">
           {{ questionIndex + 1 }}. {{ question.prompt }}
         </h2>
-        <p v-if="question.instruction" class="mt-2 text-xs font-medium uppercase tracking-wide text-gray-400">
+        <p v-if="question.instruction" class="mt-2 text-xs font-medium tracking-wide uppercase text-gray-400">
           {{ question.instruction }}
         </p>
         <div v-if="question.type !== 'text'" class="grid mt-4 gap-2 sm:grid-cols-2">
