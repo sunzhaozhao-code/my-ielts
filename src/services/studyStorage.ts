@@ -1,4 +1,4 @@
-import type { ImportResult, StudyData } from '~/types/study'
+import type { ImportResult, StudyData, UserProfile } from '~/types/study'
 
 export const STUDY_STORAGE_KEY = 'my-ielts:study-data'
 
@@ -10,7 +10,7 @@ export interface StorageLike {
 
 export function createDefaultStudyData(): StudyData {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     updatedAt: '1970-01-01T00:00:00.000Z',
     profile: null,
     progress: {
@@ -69,9 +69,7 @@ function isProfile(value: unknown) {
     return true
   if (!isRecord(value))
     return false
-  return typeof value.assessmentScore === 'number'
-    && ['foundation', 'ielts-5', 'ielts-5.5', 'ielts-6', 'ielts-6.5', 'ielts-7'].includes(String(value.startingStage))
-    && [6, 6.5, 7].includes(Number(value.targetBand))
+  return [6, 6.5, 7].includes(Number(value.targetBand))
     && [30, 45, 60, 90].includes(Number(value.dailyMinutes))
     && (value.examType === undefined || ['academic', 'general'].includes(String(value.examType)))
 }
@@ -105,7 +103,7 @@ function isStudyData(value: unknown): value is StudyData {
   if (!isRecord(value))
     return false
 
-  return [1, 2].includes(Number(value.schemaVersion))
+  return [1, 2, 3].includes(Number(value.schemaVersion))
     && (value.updatedAt === undefined || typeof value.updatedAt === 'string')
     && isProfile(value.profile)
     && isProgress(value.progress)
@@ -119,20 +117,34 @@ function isStudyData(value: unknown): value is StudyData {
 }
 
 function normalizeStudyData(data: StudyData): StudyData {
+  const legacyProfile = data.profile as (UserProfile & { assessmentScore?: number; startingStage?: string }) | null
+  const restartCompleteRoute = data.schemaVersion < 3 && legacyProfile?.startingStage !== undefined && legacyProfile.startingStage !== 'foundation'
+  const archivedActivePlan = restartCompleteRoute && data.activePlan
+    ? { ...data.activePlan, status: 'skipped' as const, completedAt: new Date().toISOString() }
+    : null
+
   return {
     ...createDefaultStudyData(),
     ...data,
-    schemaVersion: 2,
-    profile: data.profile
+    schemaVersion: 3,
+    profile: legacyProfile
       ? {
-          ...data.profile,
-          examType: data.profile.examType ?? 'academic',
+          targetBand: legacyProfile.targetBand,
+          dailyMinutes: legacyProfile.dailyMinutes,
+          examType: legacyProfile.examType ?? 'academic',
+          createdAt: legacyProfile.createdAt,
+          updatedAt: legacyProfile.updatedAt,
         }
       : null,
     progress: {
       ...createDefaultStudyData().progress,
       ...data.progress,
+      currentStage: restartCompleteRoute ? 'foundation' : data.progress.currentStage,
+      stageProgress: restartCompleteRoute ? 0 : data.progress.stageProgress,
+      courseDay: restartCompleteRoute ? 1 : data.progress.courseDay,
     },
+    activePlan: restartCompleteRoute ? null : data.activePlan,
+    planHistory: archivedActivePlan ? [...data.planHistory, archivedActivePlan] : data.planHistory,
     vocabularyProgress: data.vocabularyProgress ?? {},
     errorRecords: data.errorRecords ?? [],
     skillAttempts: data.skillAttempts ?? [],

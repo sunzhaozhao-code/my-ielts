@@ -1,5 +1,4 @@
 import { computed, reactive } from 'vue'
-import { getAvailableTargetStage } from '~/data/stages'
 import { addDays, advanceStage, registerStudyDate, toLocalDateKey } from '~/domain/study/dayLifecycle'
 import { createDailyPlan } from '~/domain/study/planGenerator'
 import { evaluateStageReadiness } from '~/domain/study/stageReadiness'
@@ -47,12 +46,12 @@ function ensureActivePlan(dateKey = toLocalDateKey()) {
   return state.activePlan
 }
 
-function completeOnboarding(profile: UserProfile, stageProgress: number) {
+function completeOnboarding(profile: UserProfile) {
   const fresh = createDefaultStudyData()
   Object.assign(state, fresh)
   state.profile = profile
-  state.progress.currentStage = profile.startingStage
-  state.progress.stageProgress = stageProgress
+  state.progress.currentStage = 'foundation'
+  state.progress.stageProgress = 0
   ensureActivePlan()
   persist()
 }
@@ -187,15 +186,15 @@ function finalizeActiveDay(dateKey = toLocalDateKey()) {
   state.progress.totalCompletedTasks += plan.tasks.length
   registerStudyDate(state.progress, dateKey)
   const readiness = evaluateStageReadiness(state)
-  advanceStage(state.progress, plan.estimatedMinutes, getAvailableTargetStage(state.profile!.targetBand), readiness.ready)
+  advanceStage(state.progress, plan.estimatedMinutes, 'ielts-6.5', readiness.ready)
   state.progress.courseDay += 1
   persist()
   return true
 }
 
-function reconfigureAfterAssessment(profile: UserProfile, stageProgress: number) {
+function reconfigureLearningPlan(profile: UserProfile) {
   if (!state.profile) {
-    completeOnboarding(profile, stageProgress)
+    completeOnboarding(profile)
     return
   }
 
@@ -212,8 +211,8 @@ function reconfigureAfterAssessment(profile: UserProfile, stageProgress: number)
     ...profile,
     createdAt: state.profile.createdAt,
   }
-  state.progress.currentStage = profile.startingStage
-  state.progress.stageProgress = stageProgress
+  state.progress.currentStage = 'foundation'
+  state.progress.stageProgress = 0
   state.activePlan = null
   ensureActivePlan()
   persist()
@@ -271,7 +270,7 @@ export function useStudyStore() {
     activePlan: computed(() => state.activePlan),
     ensureActivePlan,
     completeOnboarding,
-    reconfigureAfterAssessment,
+    reconfigureLearningPlan,
     setTaskCompleted,
     completeTaskWithResult,
     recordVocabularyRating,

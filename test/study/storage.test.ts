@@ -16,7 +16,7 @@ describe('study storage', () => {
     const storage = memoryStorage()
     expect(loadStudyData(storage).progress.courseDay).toBe(1)
     storage.setItem(STUDY_STORAGE_KEY, '{broken')
-    expect(loadStudyData(storage).schemaVersion).toBe(2)
+    expect(loadStudyData(storage).schemaVersion).toBe(3)
     expect(loadStudyData(storage).vocabularyProgress).toEqual({})
   })
 
@@ -28,7 +28,7 @@ describe('study storage', () => {
     expect(loadStudyData(storage).progress.courseDay).toBe(7)
   })
 
-  it('migrates version 1 profiles to Academic without losing progress', () => {
+  it('moves legacy placement users back to the complete route without losing records', () => {
     const storage = memoryStorage()
     const legacy = createDefaultStudyData() as any
     legacy.schemaVersion = 1
@@ -44,9 +44,10 @@ describe('study storage', () => {
     storage.setItem(STUDY_STORAGE_KEY, JSON.stringify(legacy))
 
     const migrated = loadStudyData(storage)
-    expect(migrated.schemaVersion).toBe(2)
+    expect(migrated.schemaVersion).toBe(3)
     expect(migrated.profile?.examType).toBe('academic')
-    expect(migrated.progress.courseDay).toBe(12)
+    expect(migrated.progress.currentStage).toBe('foundation')
+    expect(migrated.progress.courseDay).toBe(1)
   })
 
   it('rejects unrelated JSON imports', () => {

@@ -35,11 +35,12 @@ export function createVocabularySession(
   const allWords = getAllVocabularyWords()
 
   if (mode === 'review') {
-    const dueIds = new Set(Object.values(progress)
+    const wordById = new Map(allWords.map(word => [word.id, word]))
+    const dueIds = Object.values(progress)
       .filter(item => item.nextReviewDate <= dateKey && item.status !== 'mastered')
       .sort((a, b) => a.nextReviewDate.localeCompare(b.nextReviewDate))
-      .map(item => item.wordId))
-    const due = allWords.filter(word => dueIds.has(word.id))
+      .map(item => item.wordId)
+    const due = dueIds.map(id => wordById.get(id)).filter((word): word is VocabularyWord => Boolean(word))
     return due.slice(0, count)
   }
 
@@ -47,5 +48,9 @@ export function createVocabularySession(
   if (unseen.length >= count)
     return unseen.slice(0, count)
 
-  return [...unseen, ...allWords.filter(word => progress[`vocabulary:${word.id}`]?.status !== 'mastered')].slice(0, count)
+  const seenNotMastered = allWords.filter((word) => {
+    const item = progress[`vocabulary:${word.id}`]
+    return item && item.status !== 'mastered'
+  })
+  return [...unseen, ...seenNotMastered].slice(0, count)
 }

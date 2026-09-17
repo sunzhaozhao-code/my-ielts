@@ -12,7 +12,7 @@ describe('listening lessons', () => {
     }
   })
 
-  it('adapts downward after repeated low listening scores', () => {
+  it('keeps the curriculum difficulty even after repeated low scores', () => {
     const attempts = Array.from({ length: 3 }, (_, index) => ({
       id: `attempt-${index}`,
       type: 'listening' as const,
@@ -22,6 +22,6 @@ describe('listening lessons', () => {
       durationSeconds: 600,
       accuracy: 40,
     }))
-    expect(selectListeningLesson('ielts-6.5', attempts, 1).difficulty).toBe(2)
+    expect(selectListeningLesson('ielts-6.5', attempts, 1).difficulty).toBe(3)
   })
 })

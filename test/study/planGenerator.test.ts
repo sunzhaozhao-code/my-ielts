@@ -27,4 +27,10 @@ describe('daily task generator', () => {
     expect(plan.tasks.every(task => task.dayNumber === 3)).toBe(true)
     expect(plan.tasks.every(task => task.route.includes('task=day-3-'))).toBe(true)
   })
+
+  it('continues assigning unseen vocabulary in advanced stages', () => {
+    const tasks = getTaskTemplate('ielts-6.5', 60, 140)
+    expect(tasks.map(task => task.type)).toContain('vocabulary-new')
+    expect(tasks.reduce((sum, task) => sum + task.minutes, 0)).toBe(60)
+  })
 })

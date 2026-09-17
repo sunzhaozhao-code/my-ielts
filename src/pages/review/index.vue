@@ -11,6 +11,7 @@ const reviewWords = computed(() => Object.values(studyStore.state.vocabularyProg
 const dueWords = computed(() => reviewWords.value.filter(word => word.nextReviewDate <= today))
 const errorRecords = computed(() => [...studyStore.state.errorRecords]
   .sort((a, b) => a.nextReviewDate.localeCompare(b.nextReviewDate)))
+const dueErrors = computed(() => errorRecords.value.filter(record => record.nextReviewDate <= today))
 const counts = computed(() => ({
   grammar: errorRecords.value.filter(record => record.type === 'grammar').length,
   listening: errorRecords.value.filter(record => record.type === 'listening').length,
@@ -82,8 +83,8 @@ const activeReviewTask = computed(() => studyStore.activePlan.value?.tasks.find(
       </p>
     </section>
 
-    <button v-if="activeReviewTask" class="mt-5 w-full rounded-xl bg-primary-600 px-6 py-3.5 font-medium text-white" @click="studyStore.completeTaskWithResult(activeReviewTask.id)">
-      完成本次复习任务
+    <button v-if="activeReviewTask" class="mt-5 w-full rounded-xl bg-primary-600 px-6 py-3.5 font-medium text-white disabled:cursor-not-allowed disabled:bg-gray-300 dark:disabled:bg-gray-700" :disabled="dueWords.length > 0 || dueErrors.length > 0" @click="studyStore.completeTaskWithResult(activeReviewTask.id)">
+      {{ dueWords.length || dueErrors.length ? `还有 ${dueWords.length + dueErrors.length} 项到期内容待复习` : '完成本次复习任务' }}
     </button>
   </div>
 </template>

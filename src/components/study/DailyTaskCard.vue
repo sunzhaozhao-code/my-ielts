@@ -3,11 +3,6 @@ import type { DailyTask } from '~/types/study'
 
 const props = defineProps<{
   task: DailyTask
-  disabled?: boolean
-}>()
-
-const emit = defineEmits<{
-  toggle: [taskId: string, completed: boolean]
 }>()
 
 const iconMap: Record<DailyTask['type'], string> = {
@@ -27,16 +22,13 @@ const completed = computed(() => props.task.status === 'completed')
     class="group flex gap-4 border rounded-2xl bg-white p-4 transition dark:border-gray-700 dark:bg-gray-800 sm:p-5"
     :class="completed ? 'border-primary-200 opacity-75 dark:border-primary-900' : 'border-gray-200 hover:border-primary-300 hover:shadow-sm'"
   >
-    <button
-      type="button"
+    <div
       class="mt-0.5 h-6 w-6 flex shrink-0 items-center justify-center border rounded-full transition"
       :class="completed ? 'border-primary-600 bg-primary-600 text-white' : 'border-gray-300 text-transparent hover:border-primary-500 dark:border-gray-600'"
-      :disabled="disabled"
-      :aria-label="completed ? '标记为未完成' : '标记为已完成'"
-      @click="emit('toggle', task.id, !completed)"
+      :aria-label="completed ? '已完成' : '未完成，请进入任务学习'"
     >
       <span class="i-carbon-checkmark" />
-    </button>
+    </div>
 
     <div class="min-w-0 flex-1">
       <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">

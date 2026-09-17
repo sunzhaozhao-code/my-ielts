@@ -24,27 +24,7 @@ export type VocabularyRating = 'known' | 'fuzzy' | 'unknown'
 export type VocabularyStatus = 'learned' | 'learning' | 'mastered' | 'review'
 export type ErrorType = 'grammar' | 'listening' | 'reading'
 
-export interface AssessmentQuestion {
-  id: string
-  category: 'vocabulary' | 'grammar' | 'reading'
-  prompt: string
-  passage?: string
-  options: string[]
-  answer: number
-  explanation: string
-}
-
-export interface PlacementResult {
-  score: number
-  stage: LearningStage
-  stageInitialProgress: number
-  label: string
-  description: string
-}
-
 export interface UserProfile {
-  assessmentScore: number
-  startingStage: LearningStage
   targetBand: TargetBand
   dailyMinutes: DailyMinutes
   examType: ExamType
@@ -156,7 +136,7 @@ export interface WritingDraft {
 }
 
 export interface StudyData {
-  schemaVersion: 2
+  schemaVersion: 3
   updatedAt: string
   profile: UserProfile | null
   progress: LearningProgress

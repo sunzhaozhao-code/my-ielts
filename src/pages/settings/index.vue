@@ -63,7 +63,7 @@ async function clearData() {
   }
 }
 
-function restartAssessment() {
+function restartPlan() {
   router.push('/onboarding?restart=1')
 }
 </script>
@@ -130,9 +130,9 @@ function restartAssessment() {
         </button><label class="cursor-pointer border border-gray-300 rounded-xl px-5 py-2.5 text-sm font-medium dark:border-gray-600">导入学习数据 JSON<input type="file" accept="application/json,.json" class="hidden" @change="uploadData"></label>
       </div>
       <div class="mt-6 border-t border-gray-100 pt-6 dark:border-gray-700">
-        <button class="mr-3 text-sm font-medium text-primary-700 dark:text-primary-400 hover:underline" @click="restartAssessment">
-          重新水平测试
-        </button><button class="text-sm font-medium text-red-600 disabled:opacity-50 hover:underline" :disabled="clearing" @click="clearData">
+        <button class="mr-3 text-sm font-medium text-primary-700 dark:text-primary-400 hover:underline" @click="restartPlan">
+          重新制定完整学习路线
+        </button><button class="text-sm font-medium text-red-600 hover:underline disabled:opacity-50" :disabled="clearing" @click="clearData">
           {{ clearing ? '正在清空…' : cloudSync.user.value ? '清空本机和云端记录' : '清空学习记录' }}
         </button>
       </div>

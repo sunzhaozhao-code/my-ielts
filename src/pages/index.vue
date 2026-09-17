@@ -36,10 +36,6 @@ const isOverdue = computed(() => Boolean(
 const carryoverChoiceMade = ref(false)
 const showIncompletePrompt = computed(() => isOverdue.value && !carryoverChoiceMade.value)
 
-function toggleTask(taskId: string, completed: boolean) {
-  studyStore.setTaskCompleted(taskId, completed)
-}
-
 function finishDay() {
   studyStore.finalizeActiveDay()
 }
@@ -127,7 +123,7 @@ function continueOldDay() {
         </div>
 
         <div class="space-y-3">
-          <DailyTaskCard v-for="task in activePlan.tasks" :key="task.id" :task="task" @toggle="toggleTask" />
+          <DailyTaskCard v-for="task in activePlan.tasks" :key="task.id" :task="task" />
         </div>
 
         <button class="mt-6 w-full rounded-xl bg-primary-600 px-6 py-3.5 font-medium text-white transition disabled:cursor-not-allowed disabled:bg-gray-300 hover:bg-primary-700 dark:disabled:bg-gray-700" :disabled="!allCompleted" @click="finishDay">

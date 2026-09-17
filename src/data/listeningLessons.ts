@@ -168,17 +168,9 @@ export function getListeningLesson(id: string | undefined) {
   return LISTENING_LESSONS.find(lesson => lesson.id === id)
 }
 
-export function selectListeningLesson(stage: LearningStage, attempts: SkillAttempt[], dayNumber: number) {
+export function selectListeningLesson(stage: LearningStage, _attempts: SkillAttempt[], dayNumber: number) {
   const stageDifficulty: Record<LearningStage, 1 | 2 | 3> = { 'foundation': 1, 'ielts-5': 1, 'ielts-5.5': 2, 'ielts-6': 2, 'ielts-6.5': 3, 'ielts-7': 3 }
-  let difficulty = stageDifficulty[stage]
-  const recent = attempts.filter(attempt => attempt.type === 'listening' && attempt.resourceId.startsWith('listening:lesson:') && attempt.accuracy !== undefined).slice(-3)
-  if (recent.length >= 3) {
-    const average = recent.reduce((sum, attempt) => sum + (attempt.accuracy ?? 0), 0) / recent.length
-    if (average < 60)
-      difficulty = Math.max(1, difficulty - 1) as 1 | 2 | 3
-    else if (recent.every(attempt => (attempt.accuracy ?? 0) >= 80))
-      difficulty = Math.min(3, difficulty + 1) as 1 | 2 | 3
-  }
+  const difficulty = stageDifficulty[stage]
   const candidates = LISTENING_LESSONS.filter(lesson => lesson.difficulty === difficulty)
   return candidates[(dayNumber - 1) % candidates.length]
 }

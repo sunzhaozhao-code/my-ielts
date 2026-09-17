@@ -10,7 +10,7 @@ const studyStore = useStudyStore()
 const taskId = typeof route.query.task === 'string' ? route.query.task : undefined
 const examType = studyStore.profile.value?.examType ?? 'academic'
 const task = selectWritingTask(studyStore.progress.value.currentStage, studyStore.progress.value.courseDay, examType)
-const resourceId = `writing:${task.id}`
+const resourceId = taskId ? `writing:${task.id}:${taskId}` : `writing:${task.id}`
 const existing = studyStore.state.writingDrafts[resourceId]
 const content = ref(existing?.content ?? '')
 const elapsedSeconds = ref(0)
@@ -22,7 +22,7 @@ const manualPrompt = ref('')
 let timer: number | null = null
 
 const wordCount = computed(() => content.value.trim() ? content.value.trim().split(/\s+/).length : 0)
-const completionThreshold = computed(() => Math.ceil(task.minimumWords * 0.8))
+const completionThreshold = computed(() => task.minimumWords)
 const canComplete = computed(() => wordCount.value >= completionThreshold.value)
 
 function toggleTimer() {
@@ -149,9 +149,6 @@ onUnmounted(() => {
       <p v-if="wordCount > 0 && wordCount < completionThreshold" class="mt-3 text-sm text-amber-700 dark:text-amber-300">
         至少写到 {{ completionThreshold }} 词才能标记完成；正式字数要求为 {{ task.minimumWords }} 词。
       </p>
-      <p v-else-if="wordCount >= completionThreshold && wordCount < task.minimumWords" class="mt-3 text-sm text-amber-700 dark:text-amber-300">
-        已达到练习完成线，但仍未达到正式考试最低字数 {{ task.minimumWords }} 词。
-      </p>
     </section>
 
     <section class="mt-5 border border-gray-200 rounded-2xl bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
@@ -161,7 +158,7 @@ onUnmounted(() => {
       <p class="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">
         网站不会上传作文或调用 AI。点击后只会把题目、作文和 IELTS 四项评分要求复制到剪贴板。
       </p>
-      <button class="mt-4 rounded-xl border border-primary-300 px-5 py-2.5 text-sm font-medium text-primary-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-primary-800 dark:text-primary-300" :disabled="!content.trim()" @click="copyForAiReview">
+      <button class="mt-4 border border-primary-300 rounded-xl px-5 py-2.5 text-sm font-medium text-primary-700 disabled:cursor-not-allowed dark:border-primary-800 dark:text-primary-300 disabled:opacity-40" :disabled="!content.trim()" @click="copyForAiReview">
         复制给 AI 批改
       </button>
       <p v-if="copyMessage" class="mt-3 text-sm text-primary-700 dark:text-primary-300">

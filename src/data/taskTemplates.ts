@@ -92,18 +92,6 @@ function writing(minutes: number): TaskTemplateItem {
   }
 }
 
-function mixedReview(minutes: number): TaskTemplateItem {
-  return {
-    type: 'vocabulary-review',
-    title: '错题与薄弱项复习',
-    description: '复盘近期词汇和训练中的薄弱内容。',
-    resourceId: 'vocabulary:due-review',
-    route: '/review',
-    minutes,
-    reviewRequired: true,
-  }
-}
-
 export function getSixtyMinuteTemplate(stage: LearningStage, dayNumber: number): TaskTemplateItem[] {
   if (stage === 'foundation') {
     return [
@@ -137,18 +125,20 @@ export function getSixtyMinuteTemplate(stage: LearningStage, dayNumber: number):
 
   if (stage === 'ielts-6') {
     return [
-      listening(15, true),
-      reading(15, true),
-      writing(20),
-      mixedReview(10),
+      vocabularyReview(8),
+      vocabularyNew(12, 20),
+      listening(12, true),
+      reading(12, true),
+      writing(16),
     ]
   }
 
   return [
-    listening(15, true),
-    reading(15, true),
-    writing(20),
-    mixedReview(10),
+    vocabularyReview(8),
+    vocabularyNew(12, 20),
+    listening(12, true),
+    reading(12, true),
+    writing(16),
   ]
 }
 
