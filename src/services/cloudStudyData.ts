@@ -48,3 +48,16 @@ export async function saveCloudStudyData(userId: string, studyData: StudyData) {
   if (error)
     throw error
 }
+
+export async function deleteCloudStudyData(userId: string) {
+  if (!supabase)
+    throw new Error('尚未配置云端同步。')
+
+  const { error } = await supabase
+    .from('study_progress')
+    .delete()
+    .eq('user_id', userId)
+
+  if (error)
+    throw error
+}

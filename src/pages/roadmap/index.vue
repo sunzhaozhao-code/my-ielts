@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { useStudyStore } from '~/composables/useStudyStore'
 import { STAGES, getStageIndex } from '~/data/stages'
+import { evaluateStageReadiness } from '~/domain/study/stageReadiness'
 
 const studyStore = useStudyStore()
 const progress = studyStore.progress
 const profile = studyStore.profile
+const readiness = computed(() => evaluateStageReadiness(studyStore.state))
 </script>
 
 <template>
@@ -44,5 +46,25 @@ const profile = studyStore.profile
         </div>
       </article>
     </div>
+
+    <section class="mt-6 border border-gray-200 rounded-2xl bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+      <h2 class="text-lg font-bold text-gray-950 dark:text-white">
+        当前阶段能力门槛
+      </h2>
+      <p class="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">
+        完成课程天数后，还需要满足下面的训练条件才会进入下一阶段，避免只靠打卡升级。
+      </p>
+      <div class="grid mt-5 gap-3 sm:grid-cols-2">
+        <div v-for="item in readiness.requirements" :key="item.id" class="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3 dark:bg-gray-900">
+          <span class="text-sm text-gray-700 dark:text-gray-300">{{ item.label }}</span>
+          <span class="text-sm font-semibold" :class="item.met ? 'text-green-600' : 'text-amber-600'">
+            {{ item.current }} / {{ item.target }}{{ item.unit }}
+          </span>
+        </div>
+      </div>
+      <p class="mt-4 text-sm font-medium" :class="readiness.ready ? 'text-green-600' : 'text-amber-600'">
+        {{ readiness.ready ? '能力条件已满足，完成阶段课程后可以晋级。' : '尚有条件未满足，系统会继续安排薄弱项训练。' }}
+      </p>
+    </section>
   </div>
 </template>

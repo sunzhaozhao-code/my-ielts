@@ -2,8 +2,9 @@ import { computed, reactive } from 'vue'
 import { getAvailableTargetStage } from '~/data/stages'
 import { addDays, advanceStage, registerStudyDate, toLocalDateKey } from '~/domain/study/dayLifecycle'
 import { createDailyPlan } from '~/domain/study/planGenerator'
+import { evaluateStageReadiness } from '~/domain/study/stageReadiness'
 import { clearStudyData, createDefaultStudyData, loadStudyData, saveStudyData } from '~/services/studyStorage'
-import type { DailyMinutes, ErrorType, SkillAttempt, StudyData, TargetBand, UserProfile, VocabularyRating, WritingDraft } from '~/types/study'
+import type { DailyMinutes, ErrorType, ExamType, SkillAttempt, StudyData, TargetBand, UserProfile, VocabularyRating, WritingDraft } from '~/types/study'
 
 const state = reactive<StudyData>(loadStudyData())
 
@@ -163,6 +164,7 @@ function recordQuestionResult(payload: {
 function addSkillAttempt(attempt: Omit<SkillAttempt, 'id' | 'completedAt'>) {
   state.skillAttempts.push({
     ...attempt,
+    stage: state.progress.currentStage,
     id: `${attempt.type}-${Date.now()}`,
     completedAt: new Date().toISOString(),
   })
@@ -184,7 +186,8 @@ function finalizeActiveDay(dateKey = toLocalDateKey()) {
   state.progress.totalMinutes += plan.estimatedMinutes
   state.progress.totalCompletedTasks += plan.tasks.length
   registerStudyDate(state.progress, dateKey)
-  advanceStage(state.progress, plan.estimatedMinutes, getAvailableTargetStage(state.profile!.targetBand))
+  const readiness = evaluateStageReadiness(state)
+  advanceStage(state.progress, plan.estimatedMinutes, getAvailableTargetStage(state.profile!.targetBand), readiness.ready)
   state.progress.courseDay += 1
   persist()
   return true
@@ -234,12 +237,13 @@ function continueActiveDay() {
   persist()
 }
 
-function updateSettings(targetBand: TargetBand, dailyMinutes: DailyMinutes) {
+function updateSettings(targetBand: TargetBand, dailyMinutes: DailyMinutes, examType: ExamType) {
   if (!state.profile)
     return
 
   state.profile.targetBand = targetBand
   state.profile.dailyMinutes = dailyMinutes
+  state.profile.examType = examType
   state.profile.updatedAt = new Date().toISOString()
   persist()
 }

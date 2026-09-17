@@ -9,19 +9,16 @@ function play(word) {
 
 const keyword = ref('')
 const chapter = ref('Chapter2 拼写规范')
-const chapters = [
-  'Chapter2 拼写规范',
-  'Chapter3 特别名词',
-  'Chapter4 形容词副词',
-]
+const chapters = Object.keys(chapterData)
 
 const curChapter = computed(() => {
-  const { rows } = chapterData[chapter.value]
+  const selected = chapterData[chapter.value] ?? chapterData[chapters[0]]
+  const { rows } = selected
   rows.forEach((e) => {
     if (typeof e[0] === 'string')
       e[0] = e[0].split(', ')
   })
-  return chapterData[chapter.value]
+  return selected
 })
 </script>
 

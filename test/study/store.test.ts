@@ -8,6 +8,7 @@ function profile(overrides: Partial<UserProfile> = {}): UserProfile {
     startingStage: 'foundation',
     targetBand: 6.5,
     dailyMinutes: 60,
+    examType: 'academic',
     createdAt: '2026-09-01T00:00:00.000Z',
     updatedAt: '2026-09-01T00:00:00.000Z',
     ...overrides,

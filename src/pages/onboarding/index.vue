@@ -47,6 +47,7 @@ function createPlan() {
     startingStage: placement.value.stage,
     targetBand: targetBand.value,
     dailyMinutes: dailyMinutes.value,
+    examType: 'academic',
     createdAt: now,
     updatedAt: now,
   }

@@ -8,6 +8,7 @@ export type LearningStage =
 
 export type TargetBand = 6 | 6.5 | 7
 export type DailyMinutes = 30 | 45 | 60 | 90
+export type ExamType = 'academic' | 'general'
 
 export type DailyTaskType =
   | 'vocabulary-new'
@@ -46,6 +47,7 @@ export interface UserProfile {
   startingStage: LearningStage
   targetBand: TargetBand
   dailyMinutes: DailyMinutes
+  examType: ExamType
   createdAt: string
   updatedAt: string
 }
@@ -121,12 +123,27 @@ export interface ErrorRecord {
 export interface SkillAttempt {
   id: string
   type: 'grammar' | 'listening' | 'reading' | 'writing'
+  stage?: LearningStage
   resourceId: string
   completedAt: string
   durationSeconds: number
   accuracy?: number
   score?: number
   replayCount?: number
+}
+
+export interface StageRequirement {
+  id: string
+  label: string
+  current: number
+  target: number
+  unit: string
+  met: boolean
+}
+
+export interface StageReadiness {
+  ready: boolean
+  requirements: StageRequirement[]
 }
 
 export interface WritingDraft {
@@ -139,7 +156,7 @@ export interface WritingDraft {
 }
 
 export interface StudyData {
-  schemaVersion: 1
+  schemaVersion: 2
   updatedAt: string
   profile: UserProfile | null
   progress: LearningProgress

@@ -31,12 +31,34 @@ const current = computed(() => queue.value[currentIndex.value])
 const progressPercent = computed(() => queue.value.length ? Math.round(currentIndex.value / queue.value.length * 100) : 100)
 
 let audio: HTMLAudioElement | null = null
+function speakWithBrowser(word: string) {
+  if (!('speechSynthesis' in window))
+    return
+  window.speechSynthesis.cancel()
+  const utterance = new SpeechSynthesisUtterance(word)
+  utterance.lang = 'en-GB'
+  window.speechSynthesis.speak(utterance)
+}
+
 function playWord() {
   if (!current.value)
     return
   audio?.pause()
   audio = new Audio(`${import.meta.env.BASE_URL}vocabulary/audio/${current.value.chapter}/${current.value.words[0]}.mp3`)
-  audio.play()
+  let usedFallback = false
+  const fallback = () => {
+    if (usedFallback)
+      return
+    usedFallback = true
+    speakWithBrowser(current.value?.words[0] ?? '')
+  }
+  audio.addEventListener('error', fallback, { once: true })
+  audio.play().catch(fallback)
+}
+
+function completeEmptyReview() {
+  completed.value = true
+  studyStore.completeTaskWithResult(taskId, { accuracy: 100, reviewRequired: false })
 }
 
 function rate(rating: VocabularyRating) {
@@ -171,5 +193,18 @@ onUnmounted(() => audio?.pause())
         </button>
       </div>
     </template>
+
+    <section v-else class="mt-6 border border-gray-200 rounded-3xl bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
+      <span class="i-carbon-checkmark-outline text-5xl text-green-600" />
+      <h1 class="mt-4 text-2xl font-bold text-gray-950 dark:text-white">
+        今天没有到期单词
+      </h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">
+        复习队列不会再用未学习的新词凑数。
+      </p>
+      <button class="mt-6 rounded-xl bg-primary-600 px-6 py-3 font-medium text-white" @click="completeEmptyReview">
+        完成本次复习
+      </button>
+    </section>
   </div>
 </template>

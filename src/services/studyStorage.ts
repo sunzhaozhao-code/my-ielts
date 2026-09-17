@@ -10,7 +10,7 @@ export interface StorageLike {
 
 export function createDefaultStudyData(): StudyData {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     updatedAt: '1970-01-01T00:00:00.000Z',
     profile: null,
     progress: {
@@ -73,6 +73,7 @@ function isProfile(value: unknown) {
     && ['foundation', 'ielts-5', 'ielts-5.5', 'ielts-6', 'ielts-6.5', 'ielts-7'].includes(String(value.startingStage))
     && [6, 6.5, 7].includes(Number(value.targetBand))
     && [30, 45, 60, 90].includes(Number(value.dailyMinutes))
+    && (value.examType === undefined || ['academic', 'general'].includes(String(value.examType)))
 }
 
 function isProgress(value: unknown) {
@@ -104,7 +105,7 @@ function isStudyData(value: unknown): value is StudyData {
   if (!isRecord(value))
     return false
 
-  return value.schemaVersion === 1
+  return [1, 2].includes(Number(value.schemaVersion))
     && (value.updatedAt === undefined || typeof value.updatedAt === 'string')
     && isProfile(value.profile)
     && isProgress(value.progress)
@@ -121,6 +122,13 @@ function normalizeStudyData(data: StudyData): StudyData {
   return {
     ...createDefaultStudyData(),
     ...data,
+    schemaVersion: 2,
+    profile: data.profile
+      ? {
+          ...data.profile,
+          examType: data.profile.examType ?? 'academic',
+        }
+      : null,
     progress: {
       ...createDefaultStudyData().progress,
       ...data.progress,

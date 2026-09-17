@@ -2,13 +2,14 @@ import type { User } from '@supabase/supabase-js'
 import { computed, reactive, watch } from 'vue'
 import { useStudyStore } from '~/composables/useStudyStore'
 import { decideSyncAction } from '~/domain/sync/syncDecision'
-import { fetchCloudStudyData, saveCloudStudyData } from '~/services/cloudStudyData'
+import { deleteCloudStudyData, fetchCloudStudyData, saveCloudStudyData } from '~/services/cloudStudyData'
 import { isCloudSyncConfigured, supabase } from '~/services/supabaseClient'
 import type { StudyData } from '~/types/study'
 
 type CloudSyncStatus = 'unconfigured' | 'signed-out' | 'syncing' | 'synced' | 'conflict' | 'error'
 
 const LOCAL_OWNER_KEY = 'my-ielts:study-owner'
+const SYNC_META_KEY_PREFIX = 'my-ielts:sync-meta:'
 const GUEST_OWNER = 'guest'
 const studyStore = useStudyStore()
 const cloudState = reactive<{
@@ -29,8 +30,14 @@ let initializePromise: Promise<void> | null = null
 let syncPromise: Promise<void> | null = null
 let uploadTimer: number | null = null
 let pendingRemoteData: StudyData | null = null
+let pendingRemoteDeleted = false
 let suppressedUpdatedAt: string | null = null
 let listenersInstalled = false
+
+interface SyncMeta {
+  localUpdatedAt: string
+  remoteUpdatedAt: string | null
+}
 
 function getLocalOwner() {
   return typeof window === 'undefined' ? null : window.localStorage.getItem(LOCAL_OWNER_KEY)
@@ -39,6 +46,27 @@ function getLocalOwner() {
 function setLocalOwner(owner: string) {
   if (typeof window !== 'undefined')
     window.localStorage.setItem(LOCAL_OWNER_KEY, owner)
+}
+
+function getSyncMeta(userId: string): SyncMeta | null {
+  if (typeof window === 'undefined')
+    return null
+  try {
+    const raw = window.localStorage.getItem(`${SYNC_META_KEY_PREFIX}${userId}`)
+    return raw ? JSON.parse(raw) as SyncMeta : null
+  }
+  catch {
+    return null
+  }
+}
+
+function setSyncMeta(userId: string, remoteUpdatedAt: string | null) {
+  if (typeof window === 'undefined')
+    return
+  window.localStorage.setItem(`${SYNC_META_KEY_PREFIX}${userId}`, JSON.stringify({
+    localUpdatedAt: studyStore.state.updatedAt,
+    remoteUpdatedAt,
+  } satisfies SyncMeta))
 }
 
 function hasLocalLearningData() {
@@ -55,6 +83,7 @@ async function uploadLocalData() {
     return
   await saveCloudStudyData(cloudState.user.id, studyStore.state)
   setLocalOwner(cloudState.user.id)
+  setSyncMeta(cloudState.user.id, studyStore.state.updatedAt)
   cloudState.lastSyncedAt = new Date().toISOString()
 }
 
@@ -66,6 +95,34 @@ async function reconcileUser(user: User) {
   const remote = await fetchCloudStudyData(user.id)
   if (owner && owner !== GUEST_OWNER && owner !== user.id)
     owner = null
+
+  const syncMeta = owner === user.id ? getSyncMeta(user.id) : null
+  if (syncMeta) {
+    const localChanged = studyStore.state.updatedAt !== syncMeta.localUpdatedAt
+    const remoteChanged = (remote?.updatedAt ?? null) !== syncMeta.remoteUpdatedAt
+
+    if (localChanged && remoteChanged) {
+      pendingRemoteData = remote?.data ?? null
+      pendingRemoteDeleted = !remote
+      cloudState.status = 'conflict'
+      return 'conflict' as const
+    }
+    if (remoteChanged) {
+      if (remote)
+        applyRemoteData(remote.data)
+      else
+        studyStore.resetAllData()
+      setSyncMeta(user.id, remote?.updatedAt ?? null)
+      setLocalOwner(user.id)
+      return 'done' as const
+    }
+    if (localChanged) {
+      await uploadLocalData()
+      return 'done' as const
+    }
+    return 'done' as const
+  }
+
   const action = decideSyncAction({
     localHasData: hasLocalLearningData(),
     remoteExists: Boolean(remote),
@@ -77,14 +134,19 @@ async function reconcileUser(user: User) {
 
   if (action === 'conflict') {
     pendingRemoteData = remote!.data
+    pendingRemoteDeleted = false
     setLocalOwner(GUEST_OWNER)
     cloudState.status = 'conflict'
     return 'conflict' as const
   }
-  if (action === 'download-remote')
+  if (action === 'download-remote') {
     applyRemoteData(remote!.data)
+    setSyncMeta(user.id, remote!.updatedAt)
+  }
   else if (action === 'upload-local')
     await uploadLocalData()
+  else
+    setSyncMeta(user.id, remote?.updatedAt ?? null)
 
   setLocalOwner(user.id)
   return 'done' as const
@@ -124,16 +186,7 @@ function scheduleUpload() {
     window.clearTimeout(uploadTimer)
   uploadTimer = window.setTimeout(async () => {
     uploadTimer = null
-    cloudState.status = 'syncing'
-    try {
-      await uploadLocalData()
-      cloudState.status = 'synced'
-      cloudState.errorMessage = ''
-    }
-    catch (error) {
-      cloudState.status = 'error'
-      cloudState.errorMessage = error instanceof Error ? error.message : '云端同步失败。'
-    }
+    await syncNow()
   }, 1200)
 }
 
@@ -243,12 +296,13 @@ async function signOut() {
     return false
   }
   if (cloudState.user) {
-    try {
-      await uploadLocalData()
+    await syncNow()
+    if ((cloudState.status as CloudSyncStatus) === 'conflict') {
+      cloudState.errorMessage = '另一台设备也修改了进度，请先选择保留本机或云端进度。'
+      return false
     }
-    catch (error) {
-      cloudState.status = 'error'
-      cloudState.errorMessage = `退出前同步失败，本地数据仍已保留：${error instanceof Error ? error.message : '请稍后重试。'}`
+    if (cloudState.status === 'error') {
+      cloudState.errorMessage = `退出前同步失败，本地数据仍已保留：${cloudState.errorMessage || '请稍后重试。'}`
       return false
     }
   }
@@ -261,6 +315,7 @@ async function signOut() {
   cloudState.user = null
   cloudState.status = 'signed-out'
   pendingRemoteData = null
+  pendingRemoteDeleted = false
   studyStore.resetAllData()
   setLocalOwner(GUEST_OWNER)
   return true
@@ -270,6 +325,7 @@ async function keepLocalData() {
   if (!cloudState.user)
     return
   pendingRemoteData = null
+  pendingRemoteDeleted = false
   cloudState.status = 'syncing'
   try {
     await uploadLocalData()
@@ -282,13 +338,47 @@ async function keepLocalData() {
 }
 
 function useRemoteData() {
-  if (!cloudState.user || !pendingRemoteData)
+  if (!cloudState.user || (!pendingRemoteData && !pendingRemoteDeleted))
     return
-  applyRemoteData(pendingRemoteData)
+  const remoteWasDeleted = pendingRemoteDeleted
+  if (pendingRemoteData)
+    applyRemoteData(pendingRemoteData)
+  else
+    studyStore.resetAllData()
   pendingRemoteData = null
+  pendingRemoteDeleted = false
   setLocalOwner(cloudState.user.id)
+  setSyncMeta(cloudState.user.id, remoteWasDeleted ? null : studyStore.state.updatedAt)
   cloudState.status = 'synced'
   cloudState.lastSyncedAt = new Date().toISOString()
+}
+
+async function deleteAllProgress() {
+  if ((cloudState.status as CloudSyncStatus) === 'conflict')
+    throw new Error('请先处理本机与云端进度冲突。')
+
+  if (uploadTimer !== null) {
+    window.clearTimeout(uploadTimer)
+    uploadTimer = null
+  }
+  if (syncPromise)
+    await syncPromise
+  if (cloudState.status === 'conflict')
+    throw new Error('另一台设备也修改了进度，请先处理同步冲突。')
+
+  cloudState.status = cloudState.user ? 'syncing' : 'signed-out'
+  if (cloudState.user)
+    await deleteCloudStudyData(cloudState.user.id)
+
+  pendingRemoteData = null
+  pendingRemoteDeleted = false
+  studyStore.resetAllData()
+  setLocalOwner(cloudState.user?.id ?? GUEST_OWNER)
+  if (cloudState.user)
+    setSyncMeta(cloudState.user.id, null)
+  cloudState.status = cloudState.user ? 'synced' : 'signed-out'
+  cloudState.lastSyncedAt = new Date().toISOString()
+  cloudState.errorMessage = ''
 }
 
 export function useCloudSync() {
@@ -302,5 +392,6 @@ export function useCloudSync() {
     signOut,
     keepLocalData,
     useRemoteData,
+    deleteAllProgress,
   }
 }

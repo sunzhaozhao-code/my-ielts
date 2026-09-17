@@ -63,8 +63,8 @@ function listening(minutes: number, advanced = false): TaskTemplateItem {
     type: 'listening',
     title: advanced ? '听力训练 · 雅思题型' : '听力训练 · 179 考点词',
     description: advanced ? '完成一组听力训练并记录结果。' : '听音频，输入考点词和同义替换。',
-    resourceId: 'listening:179',
-    route: '/learn/listening',
+    resourceId: advanced ? 'listening:comprehension' : 'listening:179',
+    route: advanced ? '/learn/listening-comprehension' : '/learn/listening',
     minutes,
     targetCount: advanced ? 15 : 10,
   }
@@ -84,9 +84,9 @@ function reading(minutes: number, advanced = false): TaskTemplateItem {
 function writing(minutes: number): TaskTemplateItem {
   return {
     type: 'writing',
-    title: '写作训练 · 句子翻译',
-    description: '先独立翻译，再查看参考答案。',
-    resourceId: 'writing:100-sentences',
+    title: '写作训练 · 今日题目',
+    description: '按当前阶段完成段落、Task 1 或 Task 2 训练。',
+    resourceId: 'writing:daily-task',
     route: '/learn/writing',
     minutes,
   }
@@ -128,7 +128,7 @@ export function getSixtyMinuteTemplate(stage: LearningStage, dayNumber: number):
   if (stage === 'ielts-5.5') {
     return [
       vocabularyReview(10),
-      listening(15),
+      listening(15, true),
       reading(15),
       writing(15),
       vocabularyNew(5, 6),

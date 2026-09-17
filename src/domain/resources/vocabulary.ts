@@ -30,7 +30,7 @@ export function createVocabularySession(
   mode: 'new' | 'review',
   count: number,
   dateKey: string,
-  dayNumber: number,
+  _dayNumber: number,
 ) {
   const allWords = getAllVocabularyWords()
 
@@ -40,16 +40,12 @@ export function createVocabularySession(
       .sort((a, b) => a.nextReviewDate.localeCompare(b.nextReviewDate))
       .map(item => item.wordId))
     const due = allWords.filter(word => dueIds.has(word.id))
-    const learning = allWords.filter(word => progress[`vocabulary:${word.id}`] && !dueIds.has(word.id))
-    const unseen = allWords.filter(word => !progress[`vocabulary:${word.id}`])
-    return [...due, ...learning, ...unseen].slice(0, count)
+    return due.slice(0, count)
   }
 
   const unseen = allWords.filter(word => !progress[`vocabulary:${word.id}`])
-  if (unseen.length >= count) {
-    const start = ((dayNumber - 1) * count) % unseen.length
-    return [...unseen.slice(start), ...unseen.slice(0, start)].slice(0, count)
-  }
+  if (unseen.length >= count)
+    return unseen.slice(0, count)
 
   return [...unseen, ...allWords.filter(word => progress[`vocabulary:${word.id}`]?.status !== 'mastered')].slice(0, count)
 }

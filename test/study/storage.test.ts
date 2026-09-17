@@ -16,7 +16,7 @@ describe('study storage', () => {
     const storage = memoryStorage()
     expect(loadStudyData(storage).progress.courseDay).toBe(1)
     storage.setItem(STUDY_STORAGE_KEY, '{broken')
-    expect(loadStudyData(storage).schemaVersion).toBe(1)
+    expect(loadStudyData(storage).schemaVersion).toBe(2)
     expect(loadStudyData(storage).vocabularyProgress).toEqual({})
   })
 
@@ -26,6 +26,27 @@ describe('study storage', () => {
     data.progress.courseDay = 7
     saveStudyData(data, storage)
     expect(loadStudyData(storage).progress.courseDay).toBe(7)
+  })
+
+  it('migrates version 1 profiles to Academic without losing progress', () => {
+    const storage = memoryStorage()
+    const legacy = createDefaultStudyData() as any
+    legacy.schemaVersion = 1
+    legacy.profile = {
+      assessmentScore: 10,
+      startingStage: 'ielts-5',
+      targetBand: 6.5,
+      dailyMinutes: 60,
+      createdAt: '2026-09-01T00:00:00.000Z',
+      updatedAt: '2026-09-01T00:00:00.000Z',
+    }
+    legacy.progress.courseDay = 12
+    storage.setItem(STUDY_STORAGE_KEY, JSON.stringify(legacy))
+
+    const migrated = loadStudyData(storage)
+    expect(migrated.schemaVersion).toBe(2)
+    expect(migrated.profile?.examType).toBe('academic')
+    expect(migrated.progress.courseDay).toBe(12)
   })
 
   it('rejects unrelated JSON imports', () => {

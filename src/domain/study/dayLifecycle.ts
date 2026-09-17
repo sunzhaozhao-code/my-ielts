@@ -36,12 +36,13 @@ export function registerStudyDate(progress: LearningProgress, dateKey: string) {
     : 1
 }
 
-export function advanceStage(progress: LearningProgress, completedMinutes = 60, targetStage?: LearningStage) {
+export function advanceStage(progress: LearningProgress, completedMinutes = 60, targetStage?: LearningStage, eligible = true) {
   const stage = getStage(progress.currentStage)
   if (!stage.available || stage.courseDaysAt60 <= 0)
     return
 
-  progress.stageProgress = Math.min(100, progress.stageProgress + completedMinutes / (stage.courseDaysAt60 * 60) * 100)
+  const maximum = eligible ? 100 : 99
+  progress.stageProgress = Math.min(maximum, progress.stageProgress + completedMinutes / (stage.courseDaysAt60 * 60) * 100)
   if (progress.stageProgress < 100)
     return
 

@@ -54,4 +54,12 @@ describe('day lifecycle', () => {
     expect(state.currentStage).toBe('ielts-6')
     expect(state.stageProgress).toBe(100)
   })
+
+  it('caps time progress until ability requirements are met', () => {
+    const state = progress()
+    state.stageProgress = 99
+    advanceStage(state, 60, 'ielts-6.5', false)
+    expect(state.currentStage).toBe('foundation')
+    expect(state.stageProgress).toBe(99)
+  })
 })
